@@ -13,8 +13,10 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from os.path import dirname
 
+BASE_DIR = dirname(dirname(os.path.abspath(__file__)))
+print(BASE_DIR)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -27,7 +29,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'pipeline'
 ]
 
 MIDDLEWARE = [
@@ -54,7 +56,7 @@ ROOT_URLCONF = 'pipeline_s3_test.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'TEMPLATES').replace('\\', '/'),],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -69,7 +71,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'pipeline_s3_test.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
@@ -79,7 +80,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -99,7 +99,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.10/topics/i18n/
 
@@ -113,8 +112,58 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
 STATIC_URL = '/static/'
+
+from .secrets import _AWS_ACCESS_KEY_ID, _AWS_SECRET_ACCESS_KEY, IRELAND_BUCKET
+
+
+enable_pipeline = False
+
+# STORAGES SETTINGS
+AWS_ACCESS_KEY_ID = _AWS_ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY = _AWS_SECRET_ACCESS_KEY
+AWS_STORAGE_BUCKET_NAME = IRELAND_BUCKET
+
+# PIPELINE SETTINGS
+PIPELINE = {
+    # "COMPILERS": ("libsasscompiler.LibSassCompiler",),
+    "PIPELINE_ENABLED": enable_pipeline,
+    "YUGLIFY_BINARY": "yuglify",
+    "CSS_COMPRESSOR": "pipeline.compressors.yuglify.YuglifyCompressor",
+    "JS_COMPRESSOR": "pipeline.compressors.yuglify.YuglifyCompressor",
+    # "CSS_COMPRESSOR": "pipeline.compressors.Noop",
+    # "JS_COMPRESSOR": "pipeline.compressors.Noop",
+
+    "JAVASCRIPT": {
+        "js_test": {
+            "source_filenames": (
+                "javascript/script1.js",
+                "javascript/script2.js"
+            ),
+            "output_filename": "compiled_js.js"
+        }
+    },
+    "STYLESHEETS": {
+        "css_test": {
+            "source_filenames": (
+                "css/misc.scss",
+            ),
+            "output_filename": "compiled_css.css"
+        }
+    }
+}
+
+STATICFILES_FINDERS = (
+    'pipeline.finders.FileSystemFinder',
+    'pipeline.finders.AppDirectoriesFinder',
+    'pipeline.finders.PipelineFinder',
+)
+
+if enable_pipeline:
+    STATICFILES_STORAGE = "pipeline_s3_test.storages.S3PipelineManifestStorage"
+else:
+    STATIC_ROOT = os.path.join(BASE_DIR, 'STATIC_ROOT').replace('\\', '/')
+    STATICFILES_STORAGE = 'pipeline.storage.PipelineStorage'
