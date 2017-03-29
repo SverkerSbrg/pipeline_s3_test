@@ -1,0 +1,63 @@
+# Python bytecode:
+*.py[co]
+
+# SQLite3 database files:
+*.db
+*.sqlite3
+
+# Logs:
+*.log
+
+# Eclipse
+.project
+.pydevproject
+.settings
+
+# pycharm
+.idea/
+
+settingkeys.json
+
+# Linux Editors
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+.elc
+auto-save-list
+tramp
+.\#*
+*.swp
+*.swo
+
+# Mac
+.DS_Store
+._*
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Django media folder
+Code/MEDIA/
+
+# pm collectstatic folder
+assets/
+
+.dropbox
+
+META/
+
+meta/
+
+STATIC_ROOT/
+staticfiles/
+
+# Elastic Beanstalk Files
+
+.elasticbeanstalk/*
+
+!.elasticbeanstalk/*.cfg.yml
+
+!.elasticbeanstalk/*.global.yml
+
