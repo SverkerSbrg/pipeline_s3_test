@@ -119,17 +119,19 @@ from .secrets import _AWS_ACCESS_KEY_ID, _AWS_SECRET_ACCESS_KEY
 FRANKFURT_BUCKET = "pipeline-test-frankfurt"
 IRELAND_BUCKET = "pipeline-test-ireland"
 
-DEBUG = True
+DEBUG = False
 enable_pipeline = True
 
 # STORAGES SETTINGS
+
+ALLOWED_HOSTS = "[*]"
 
 
 # PIPELINE SETTINGS
 PIPELINE = {
     # "COMPILERS": ("libsasscompiler.LibSassCompiler",),
     "PIPELINE_ENABLED": enable_pipeline,
-    "YUGLIFY_BINARY": "yuglify",
+    "YUGLIFY_BINARY": "C:/Users/Sverker/AppData/Roaming/npm/yuglify.cmd",
     "CSS_COMPRESSOR": "pipeline.compressors.yuglify.YuglifyCompressor",
     "JS_COMPRESSOR": "pipeline.compressors.yuglify.YuglifyCompressor",
     "JAVASCRIPT": {
@@ -158,18 +160,19 @@ STATICFILES_DIRS = [
 STATIC_URL = '/url_static/'
 
 if enable_pipeline:
-    STATICFILES_STORAGE = "pipeline_s3_test.storages.S3PipelineManifestStorage"
+    STATICFILES_STORAGE = "pipeline_s3_test.storages.S3PipelineCachedStorage"
     AWS_QUERYSTRING_AUTH = False
     AWS_ACCESS_KEY_ID = _AWS_ACCESS_KEY_ID
     AWS_SECRET_ACCESS_KEY = _AWS_SECRET_ACCESS_KEY
-    AWS_STORAGE_BUCKET_NAME = IRELAND_BUCKET
+    AWS_STORAGE_BUCKET_NAME = FRANKFURT_BUCKET
     os.environ['S3_USE_SIGV4'] = 'True'
+    AWS_S3_HOST = 's3.eu-central-1.amazonaws.com'
     STATICFILES_FINDERS = (
-        # 'django.contrib.staticfiles.finders.FileSystemFinder',
-        # 'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-        'pipeline.finders.FileSystemFinder',
-        'pipeline.finders.AppDirectoriesFinder',
-        # 'pipeline.finders.ManifestFinder',
+        'django.contrib.staticfiles.finders.FileSystemFinder',
+        'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+        # 'pipeline.finders.FileSystemFinder',
+        # 'pipeline.finders.AppDirectoriesFinder',
+        # 'pipeline.finders.CachedFileFinder',
         'pipeline.finders.PipelineFinder',
     )
 else:
