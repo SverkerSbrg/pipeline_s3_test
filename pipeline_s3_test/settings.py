@@ -25,18 +25,17 @@ print(BASE_DIR)
 SECRET_KEY = '3+s3v(ul^)hk+z^!f^&0d&c@hd8!e79j9q3c18n8mui7n73f#1'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = []
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    # 'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.messages',
+    # 'django.contrib.messages',
     'django.contrib.staticfiles',
     'pipeline'
 ]
@@ -115,17 +114,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
-STATIC_URL = '/static/'
 
-from .secrets import _AWS_ACCESS_KEY_ID, _AWS_SECRET_ACCESS_KEY, IRELAND_BUCKET
+from .secrets import _AWS_ACCESS_KEY_ID, _AWS_SECRET_ACCESS_KEY
+FRANKFURT_BUCKET = "pipeline-test-frankfurt"
+IRELAND_BUCKET = "pipeline-test-ireland"
 
-
-enable_pipeline = False
+DEBUG = True
+enable_pipeline = True
 
 # STORAGES SETTINGS
-AWS_ACCESS_KEY_ID = _AWS_ACCESS_KEY_ID
-AWS_SECRET_ACCESS_KEY = _AWS_SECRET_ACCESS_KEY
-AWS_STORAGE_BUCKET_NAME = IRELAND_BUCKET
+
 
 # PIPELINE SETTINGS
 PIPELINE = {
@@ -134,36 +132,54 @@ PIPELINE = {
     "YUGLIFY_BINARY": "yuglify",
     "CSS_COMPRESSOR": "pipeline.compressors.yuglify.YuglifyCompressor",
     "JS_COMPRESSOR": "pipeline.compressors.yuglify.YuglifyCompressor",
-    # "CSS_COMPRESSOR": "pipeline.compressors.Noop",
-    # "JS_COMPRESSOR": "pipeline.compressors.Noop",
-
     "JAVASCRIPT": {
         "js_test": {
             "source_filenames": (
                 "javascript/script1.js",
                 "javascript/script2.js"
             ),
-            "output_filename": "compiled_js.js"
+            "output_filename": "compiled/js.js"
         }
     },
     "STYLESHEETS": {
         "css_test": {
             "source_filenames": (
-                "css/misc.scss",
+                "css/misc.css",
             ),
-            "output_filename": "compiled_css.css"
+            "output_filename": "compiled/css.css"
         }
     }
 }
 
-STATICFILES_FINDERS = (
-    'pipeline.finders.FileSystemFinder',
-    'pipeline.finders.AppDirectoriesFinder',
-    'pipeline.finders.PipelineFinder',
-)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "STATIC"),
+]
+
+STATIC_URL = '/url_static/'
 
 if enable_pipeline:
     STATICFILES_STORAGE = "pipeline_s3_test.storages.S3PipelineManifestStorage"
+    AWS_QUERYSTRING_AUTH = False
+    AWS_ACCESS_KEY_ID = _AWS_ACCESS_KEY_ID
+    AWS_SECRET_ACCESS_KEY = _AWS_SECRET_ACCESS_KEY
+    AWS_STORAGE_BUCKET_NAME = IRELAND_BUCKET
+    os.environ['S3_USE_SIGV4'] = 'True'
+    STATICFILES_FINDERS = (
+        # 'django.contrib.staticfiles.finders.FileSystemFinder',
+        # 'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+        'pipeline.finders.FileSystemFinder',
+        'pipeline.finders.AppDirectoriesFinder',
+        # 'pipeline.finders.ManifestFinder',
+        'pipeline.finders.PipelineFinder',
+    )
 else:
     STATIC_ROOT = os.path.join(BASE_DIR, 'STATIC_ROOT').replace('\\', '/')
     STATICFILES_STORAGE = 'pipeline.storage.PipelineStorage'
+
+    STATICFILES_FINDERS = (
+        # 'django.contrib.staticfiles.finders.FileSystemFinder',
+        # 'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+        'pipeline.finders.FileSystemFinder',
+        'pipeline.finders.AppDirectoriesFinder',
+        'pipeline.finders.PipelineFinder',
+    )
